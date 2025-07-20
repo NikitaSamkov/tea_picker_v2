@@ -1,0 +1,16 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class
+
+# C extensions
+*.so
+
+# Файл конфигурации
+settings/settings.ini
+
+# Белый список
+settings/security/whitelist.txt
+
+# Логи
+logs/data
