@@ -14,3 +14,9 @@ settings/security/whitelist.txt
 
 # Логи
 logs/data
+
+# Временное хранилище
+temp/
+
+# БД
+*.db
