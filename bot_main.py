@@ -7,6 +7,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from settings import get_settings
 from icommand import start_comm, echo_comm
 from icommand import error_hndl, message_handler
+from icommand import ACTIVE_CALLBACKS
 
 
 bot_settings = get_settings()
@@ -15,13 +16,20 @@ bot_settings = get_settings()
 def main():
     application = Application.builder().token(bot_settings.get('BOT', 'BOT_TOKEN')).build()
 
-    application.add_handler(CommandHandler("start", start_comm))
-    application.add_handler(CommandHandler("echo", echo_comm))
+    add_command(application, 'start', start_comm)
+    add_command(application, 'echo', echo_comm)
+
     application.add_error_handler(error_hndl)
     application.add_handler(MessageHandler(filters.ALL, callback=message_handler))
 
     print('БОТ ЗАПУЩЕН')
     application.run_polling()
+
+
+def add_command(application: Application, command: str, callback):
+    """Добавить команду и записать её в /start"""
+    application.add_handler(CommandHandler(command, callback))
+    ACTIVE_CALLBACKS[command] = callback
 
 
 if __name__ == '__main__':

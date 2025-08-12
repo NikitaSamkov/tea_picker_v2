@@ -14,6 +14,9 @@ from settings import is_admin, is_in_whitelist, get_settings
 from separated_arguments import SeparatedArguments
 
 
+ACTIVE_CALLBACKS = {}
+
+
 def command_common(func):
     """Общий декоратор для команд бота"""
     @wraps(func)
@@ -50,11 +53,10 @@ def whitelist_only(func):
 
 @command_common
 async def start_comm(update: Update, context: CallbackContext) -> None:
-    """Команда start"""
-    await update.message.reply_text("""
-Привет! Я умею работать со следующими командами:
-/start - Показывает текущее сообщение
-""")
+    """Вывести информацию о всех доступных командах"""
+    preamble = 'Привет! Я умею работать со следующими командами:'
+    commands_info = '\n'.join(f'/{comm} - {callback.__doc__}' for comm, callback in ACTIVE_CALLBACKS.items())
+    await update.message.reply_text(f'{preamble}\n{commands_info}')
 
 
 @command_common
@@ -73,7 +75,7 @@ async def message_handler(update: Update, context: CallbackContext) -> None:
 
 @command_common
 async def echo_comm(update: Update, context: CallbackContext) -> None:
-    """Тест-эхо"""
+    """Повторить написанное сообщение"""
     await update.message.reply_text('Пришлите мне текст для того,чтобы я его повторил!')
     SeparatedArguments.wait(update.message.from_user.id, echo_callback, prefix='Ваше сообщение: ')
 
