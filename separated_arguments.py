@@ -24,7 +24,7 @@ class SeparatedArguments:
     @classmethod
     async def run_callback(cls, update: Update, context: CallbackContext):
         """Вызов callback-функции с полученными аргументами"""
-        callback, kwargs = cls.WAITING_COMMANDS.get(update.message.from_user.id, (None, None))
+        callback, kwargs = cls.WAITING_COMMANDS.pop(update.message.from_user.id, (None, None))
         if not callback:
             return
         return await callback(update, context, **kwargs)
