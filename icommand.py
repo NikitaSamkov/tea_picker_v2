@@ -13,6 +13,9 @@ from logs import log_msg
 from settings import is_admin, is_in_whitelist, get_settings
 from separated_arguments import SeparatedArguments
 
+from data.db_service import read_user_tea
+from tea.utils import add_tea
+
 
 ACTIVE_CALLBACKS = {}
 
@@ -83,4 +86,28 @@ async def echo_comm(update: Update, context: CallbackContext) -> None:
 async def echo_callback(update: Update, context: CallbackContext, prefix = '') -> None:
     """callback-функция для echo"""
     await update.message.reply_text(f'{prefix} {update.message.text}')
+
+
+@command_common
+async def add_tea_comm(update: Update, context: CallbackContext) -> None:
+    """Добавить чай в пул"""
+    if context.args:
+        return await add_tea(update, ' '.join(context.args))
+
+    await update.message.reply_text('Напишите мне название чая.')
+    SeparatedArguments.wait(update.message.from_user.id, add_tea_callback)
+
+
+async def add_tea_callback(update: Update, context: CallbackContext) -> None:
+    """callback-функция для add_tea"""
+    await add_tea(update, update.message.text)
+
+
+@command_common
+async def tea_list_comm(update: Update, context: CallbackContext) -> None:
+    """Список чая"""
+    if user_tea := read_user_tea(update.message.from_user.id):
+        await update.message.reply_text('Ваш список чая:\n\n' + '\n'.join(map(lambda item: item.name, user_tea)))
+    else:
+        await update.message.reply_text('У вас нет ни одного чая.\nДобавить чай можно командой /add_tea')
 

@@ -7,22 +7,23 @@ import enum
 from datetime import datetime, timezone
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, String, Enum, Text, JSON, Boolean, ForeignKey, DateTime
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship, sessionmaker
 from sqlalchemy.sql import func
 from sqlalchemy.ext.mutable import MutableDict
 
 
-DATABASE_URL = 'sqlite:///tea_bot.db'
+DATABASE_URL = 'sqlite:///data/tea_bot.db'
 engine = create_engine(DATABASE_URL, echo=True)
+DBSession = sessionmaker(bind=engine)
 Base = declarative_base()
 
 
-class Rating(enum.Enum):
-    STAR_1 = "⭐"
-    STAR_2 = "⭐⭐"
-    STAR_3 = "⭐⭐⭐"
-    STAR_4 = "⭐⭐⭐⭐"
-    STAR_5 = "⭐⭐⭐⭐⭐"
+class TeaRating(enum.Enum):
+    STAR_1 = 1
+    STAR_2 = 2
+    STAR_3 = 3
+    STAR_4 = 4
+    STAR_5 = 5
 
 
 class TeaType(enum.Enum):
@@ -32,6 +33,11 @@ class TeaType(enum.Enum):
     RED = 'Красный'
     HERBAL = 'Травяной'
     OTHER = 'Другое'
+
+
+class StatReason(enum.Enum):
+    PICK = 'pick'
+    FILL_CUP = 'fill_cup'
 
 
 class CreatedAtMixin:
@@ -48,7 +54,7 @@ class Tea(Base):
     user_id = Column(Integer, nullable=False)
     name = Column(String(255))
     bags = Column(Integer)
-    rating = Column(Enum(Rating))
+    rating = Column(Enum(TeaRating))
     description = Column(Text())
     use_sugar = Column(Boolean)
     picked = Column(Integer, default=0)
@@ -64,5 +70,6 @@ class Statistics(Base, CreatedAtMixin):
     __tablename__ = 'statistics'
     id = Column(Integer, primary_key=True, autoincrement=True)
     tea_id = Column(Integer, ForeignKey("tea.id"), nullable=False)
+    reason = Column(Enum(StatReason), default=StatReason.PICK)
 
     tea = relationship('Tea', back_populates="statistics")
