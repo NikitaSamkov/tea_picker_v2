@@ -13,7 +13,7 @@ from sqlalchemy.ext.mutable import MutableDict
 
 
 DATABASE_URL = 'sqlite:///data/tea_bot.db'
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL, echo=False)
 DBSession = sessionmaker(bind=engine)
 Base = declarative_base()
 

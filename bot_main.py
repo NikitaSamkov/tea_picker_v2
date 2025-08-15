@@ -5,7 +5,7 @@ __doc__ = "Основной модуль для запуска бота"
 
 from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from settings import get_settings
-from icommand import start_comm, echo_comm, add_tea_comm, tea_list_comm
+from icommand import start_comm, echo_comm, add_tea_comm, tea_list_comm, pick_comm
 from icommand import error_hndl, message_handler
 from icommand import ACTIVE_CALLBACKS
 
@@ -20,6 +20,7 @@ def main():
     add_command(application, 'echo', echo_comm)
     add_command(application, 'add_tea', add_tea_comm)
     add_command(application, 'tea_list', tea_list_comm)
+    add_command(application, 'pick', pick_comm)
 
     application.add_error_handler(error_hndl)
     application.add_handler(MessageHandler(filters.ALL, callback=message_handler))

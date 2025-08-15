@@ -5,6 +5,7 @@ __doc__ = "Команды бота"
 
 import os
 import json
+import random
 from telegram import Update
 from telegram.ext import CallbackContext
 from functools import wraps
@@ -13,7 +14,9 @@ from logs import log_msg
 from settings import is_admin, is_in_whitelist, get_settings
 from separated_arguments import SeparatedArguments
 
-from data.db_service import read_user_tea
+from data.db import StatReason
+from data.db_service import read_user_tea, save_stat, decrease_bags
+from msg.view import get_tea_view
 from tea.utils import add_tea
 
 
@@ -111,3 +114,15 @@ async def tea_list_comm(update: Update, context: CallbackContext) -> None:
     else:
         await update.message.reply_text('У вас нет ни одного чая.\nДобавить чай можно командой /add_tea')
 
+
+@command_common
+async def pick_comm(update: Update, context: CallbackContext) -> None:
+    """Выбрать случайный чай из пула"""
+    user_tea = read_user_tea(update.message.from_user.id)
+    if not user_tea:
+        return await update.message.reply_text('У вас нет ни одного чая.\nДобавить чай можно командой /add_tea')
+
+    result = random.choice(user_tea)
+    save_stat(result.id, StatReason.PICK)
+    decrease_bags(result.id)
+    await update.message.reply_text(get_tea_view(result), parse_mode='MarkdownV2')
