@@ -6,7 +6,7 @@ __doc__ = "Команды бота"
 import os
 import json
 import random
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 from functools import wraps
 
@@ -15,7 +15,7 @@ from settings import is_admin, is_in_whitelist, get_settings
 from separated_arguments import SeparatedArguments
 
 from data.db import StatReason
-from data.db_service import read_user_tea, save_stat, decrease_bags
+from data.db_service import read_user_tea, save_stat, decrease_bags, delete_tea
 from msg.view import get_tea_view
 from tea.utils import add_tea
 
@@ -126,3 +126,31 @@ async def pick_comm(update: Update, context: CallbackContext) -> None:
     save_stat(result.id, StatReason.PICK)
     decrease_bags(result.id)
     await update.message.reply_text(get_tea_view(result), parse_mode='MarkdownV2')
+
+
+@command_common
+async def delete_comm(update: Update, context: CallbackContext) -> None:
+    """Удалить чай из пула"""
+    user_tea = read_user_tea(update.message.from_user.id)
+    if not user_tea:
+        return await update.message.reply_text('У вас нет ни одного чая.\nДобавить чай можно командой /add_tea')
+    if len(user_tea) > 4:
+        keyboard = [
+            list(map(lambda tea: InlineKeyboardButton(tea.name, callback_data=f'del:{tea.id}'), user_tea[i:i+2]))
+            for i in range(0, len(user_tea), 2)
+        ]
+    else:
+        keyboard = [[InlineKeyboardButton(tea.name, callback_data=f'del:{tea.id}')] for tea in user_tea]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text('Выберите чай, который хотите удалить из пула:', reply_markup=reply_markup)
+
+
+async def delete_button(update: Update, context: CallbackContext) -> None:
+    """Обработчик кнопки удаления"""
+    query = update.callback_query
+    tea_id = int(query.data.split(':')[1])
+    status = delete_tea(tea_id)
+    if status:
+        await query.edit_message_text(text=f"Успешно удалён чай {status.name} из пула!")
+    else:
+        await query.edit_message_text(text=f"Не удалось удалить чай из пула")

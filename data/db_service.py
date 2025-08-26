@@ -43,7 +43,8 @@ def delete_tea(tea_id: int) -> bool:
         if tea := session.query(Tea).filter(Tea.id == tea_id).first():
             tea.deleted = True
             session.commit()
-            return True
+            session.refresh(tea)
+            return tea
         return False
 
 
